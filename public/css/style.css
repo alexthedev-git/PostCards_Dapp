@@ -448,6 +448,15 @@ section.main-new-section:before {
   min-width: 100px;
 }
 
+.form-btn-blk a.transfer-btn {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background-color: #40c040;
+  min-width: 100px;
+  margin-left: 5px;
+}
+
 .card-preview-block #canvas.card-canvas-blk p#canvasText {
   font-size: 28px;
   font-weight: 500;

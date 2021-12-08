@@ -168,6 +168,8 @@ export default async function mintNFT(connection, wallet, files, metadata) {
     )
   ).json();
 
+  console.log(result);
+
   const metadataFile = result.messages?.find(
     (m) => m.filename === RESERVED_TXN_MANIFEST,
   );
@@ -283,11 +285,13 @@ export const prepPayForFilesTxn = async (wallet, files) => {
   const signers = [];
 
   if (wallet.publicKey) {
+    const lamport = await getAssetCostToStore(files);
+    console.log(lamport);
     instructions.push(
       SystemProgram.transfer({
         fromPubkey: wallet.publicKey,
         toPubkey: AR_SOL_HOLDER_ID,
-        lamports: await getAssetCostToStore(files),
+        lamports: lamport,
       }),
     );
   }

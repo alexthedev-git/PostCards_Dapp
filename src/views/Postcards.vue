@@ -69,8 +69,12 @@
                     <input type='text' class='form-control' placeholder='Enter address here...' v-model="send_to">
                   </div> -->
                   <div class='form-btn-blk'>
-                  <n-f-t-creator-costs :file-size="fileSize || 0" />
+                    <n-f-t-creator-costs :file-size="fileSize || 0" />
                     <a v-if="connected" class='btn mint-btn' @click="create">MINT</a>
+                  </div>
+                  <div v-if="minted != ''" class='form-btn-blk'>
+                    <input type='text' class='form-control' placeholder='Enter receiver address here...' id="destinationKey" v-model="destinationKey"/>
+                    <a class='btn transfer-btn' @click="transfer">Transfer</a>
                   </div>
                 </div>
               </div>
@@ -122,6 +126,7 @@
 import html2canvas from 'html2canvas';
 import { PublicKey } from '@solana/web3.js';
 import mintNFT from '../utils/mintNFT';
+import transferNFT from '../utils/transferNFT';
 import NFTCreatorCosts from '../components/NFTCreatorCosts.vue';
 import { Creator, extendBorsh } from '../utils/metaplex/metadata';
 
@@ -135,6 +140,8 @@ export default {
       text: '',
       image: null,
       send_to: '',
+      minted_id: '',
+      destinationKey: '',
     };
   },
   async mounted() {
@@ -151,7 +158,16 @@ export default {
         img.click();
       });
     },
+    async transfer() {
+      const result = await transferNFT(this.$connection, this.$wallet, this.minted_id, this.destinationKey);
+      if(result)
+        this.minted_id = '';
+    },
     async create() {
+      this.minted_id = '';
+      const canvas = await html2canvas(document.getElementById('canvas'), { removeContainer: true });
+      this.image = await this.dataURLtoFile(canvas.toDataURL('image/png'), 'image.png');
+
       console.log('minting', this.image);
       extendBorsh();
       const metadata = {
@@ -185,7 +201,8 @@ export default {
         },
       };
       try {
-        await mintNFT(this.$connection, this.$wallet, [this.image], metadata);
+        const result = await mintNFT(this.$connection, this.$wallet, [this.image], metadata);
+        this.minted_id = result.mintKey;
       } catch (error) {
         console.error(error);
       }
@@ -201,6 +218,7 @@ export default {
       handler: async function () {
         const canvas = await html2canvas(document.getElementById('canvas'), { removeContainer: true });
         this.image = await this.dataURLtoFile(canvas.toDataURL('image/png'), 'image.png');
+        this.minted_id = '';
       },
     },
   },
@@ -211,6 +229,11 @@ export default {
     connected: {
       get() {
         return this.$store.state.wallet.connected;
+      },
+    },
+    minted: {
+      get() {
+        return this.minted_id;
       },
     },
     address: {
