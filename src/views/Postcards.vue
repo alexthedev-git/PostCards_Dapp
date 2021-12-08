@@ -64,17 +64,13 @@
 
                     <p id='canvasText' :style="{color: selectedTextColor}">{{text}}</p>
                   </div>
-                  <!-- <div class='form-group'>
+                  <div class='form-group'>
                     <label>Receiver Address</label>
                     <input type='text' class='form-control' placeholder='Enter address here...' v-model="send_to">
-                  </div> -->
+                  </div>
                   <div class='form-btn-blk'>
                     <n-f-t-creator-costs :file-size="fileSize || 0" />
                     <a v-if="connected" class='btn mint-btn' @click="create">MINT</a>
-                  </div>
-                  <div v-if="minted != ''" class='form-btn-blk'>
-                    <input type='text' class='form-control' placeholder='Enter receiver address here...' id="destinationKey" v-model="destinationKey"/>
-                    <a class='btn transfer-btn' @click="transfer">Transfer</a>
                   </div>
                 </div>
               </div>
@@ -140,8 +136,6 @@ export default {
       text: '',
       image: null,
       send_to: '',
-      minted_id: '',
-      destinationKey: '',
     };
   },
   async mounted() {
@@ -158,13 +152,7 @@ export default {
         img.click();
       });
     },
-    async transfer() {
-      const result = await transferNFT(this.$connection, this.$wallet, this.minted_id, this.destinationKey);
-      if(result)
-        this.minted_id = '';
-    },
     async create() {
-      this.minted_id = '';
       const canvas = await html2canvas(document.getElementById('canvas'), { removeContainer: true });
       this.image = await this.dataURLtoFile(canvas.toDataURL('image/png'), 'image.png');
 
@@ -186,14 +174,27 @@ export default {
             share: 99,
           }),
         ],
-        description: this.text,
+        description: 'POSTCARD WTF and the website www.postcards.wtf',
         external_url: '',
         image: this.image.name,
         name: 'Postcard',
         symbol: '',
         // Royalties
         sellerFeeBasisPoints: 15,
-        attributes: [],
+        attributes: [
+          {
+            trait_type: 'Text',
+            value: this.text,
+          },
+          {
+            trait_type: 'Background Color',
+            value: this.selectedBgColor,
+          },
+          {
+            trait_type: 'Text Color',
+            value: this.selectedTextColor,
+          },
+        ],
         collection: null,
         properties: {
           category: 'image',
@@ -201,8 +202,7 @@ export default {
         },
       };
       try {
-        const result = await mintNFT(this.$connection, this.$wallet, [this.image], metadata);
-        this.minted_id = result.mintKey;
+        const result = await mintNFT(this.$connection, this.$wallet, [this.image], metadata, this.send_to);
       } catch (error) {
         console.error(error);
       }
@@ -218,7 +218,6 @@ export default {
       handler: async function () {
         const canvas = await html2canvas(document.getElementById('canvas'), { removeContainer: true });
         this.image = await this.dataURLtoFile(canvas.toDataURL('image/png'), 'image.png');
-        this.minted_id = '';
       },
     },
   },
@@ -229,11 +228,6 @@ export default {
     connected: {
       get() {
         return this.$store.state.wallet.connected;
-      },
-    },
-    minted: {
-      get() {
-        return this.minted_id;
       },
     },
     address: {
