@@ -19,12 +19,12 @@ export default async function mintNFT(connection, wallet, files, metadata, sendT
   sendTo = sendTo == '' ? wallet.publicKey.toString() : sendTo;
   // Check the wallet eligibility
   const walletBalance = await connection.getBalance(new PublicKey(wallet.publicKey.toString()));
-  if (walletBalance < 100000000) {
-    Vue.toasted.show('You need at least 0.1 SOL in your wallet!', {
+  if (walletBalance < 70000000) {
+    Vue.toasted.show('You need at least 0.07 SOL in your wallet!', {
       icon: 'timer-sand',
       iconPack: 'mdi',
     });
-    throw new Error('You need at least 0.1 SOL in your wallet');
+    throw new Error('You need at least 0.07 SOL in your wallet');
   }
 
   const metadataContent = {

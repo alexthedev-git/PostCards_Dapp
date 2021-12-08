@@ -2,27 +2,7 @@
   <div class="d-flex flex-column text-body-2">
     <div class="d-flex justify-space-between">
       <div>
-        Network Fees:&nbsp;
-      </div>
-      <div class="font-family-mono">
-        {{ networkFeesValue | currency }}
-      </div>
-    </div>
-    <div class="d-flex justify-space-between">
-      <div>
-        Storage Fees:&nbsp;
-      </div>
-      <div class="font-family-mono">
-        {{ storageFeesValue | currency }}
-      </div>
-    </div>
-    <v-divider class="my-1" />
-    <div class="d-flex justify-space-between">
-      <div>
-        Total Fees:&nbsp;
-      </div>
-      <div class="font-family-mono">
-        {{ totalFeesValue | currency }}
+        Total Fee: &nbsp; 0.05 SOL Mint Fee + Network Fee
       </div>
     </div>
   </div>
