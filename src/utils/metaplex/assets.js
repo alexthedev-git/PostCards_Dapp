@@ -17,27 +17,30 @@ export async function getAssetCostToStore(files) {
   let conversionRates = JSON.parse(
     localStorage.getItem('conversionRates') || '{}',
   );
-while(1) {
-  try {
-  if (
-    !conversionRates
-    || !conversionRates.expiry
-    || conversionRates.expiry < Date.now()
-  ) {
-    conversionRates = {
-      value: JSON.parse(
-        await (
-          await fetch(
-            'https://api.coingecko.com/api/v3/simple/price?ids=solana,arweave&vs_currencies=usd',
-          )
-        ).text(),
-      ),
-      expiry: Date.now() + 5 * 60 * 1000,
-    };
-    if (conversionRates.value.solana) { localStorage.setItem('conversionRates', JSON.stringify(conversionRates)); }
-  }
-  else break;
-  } catch (e) {
+  
+  let i=0;
+  while(i<6) {
+      i++;
+    try {
+      if (
+        !conversionRates
+        || !conversionRates.expiry
+        || conversionRates.expiry < Date.now()
+      ) {
+        conversionRates = {
+          value: JSON.parse(
+            await (
+              await fetch(
+                'https://api.coingecko.com/api/v3/simple/price?ids=solana,arweave&vs_currencies=usd',
+              )
+            ).text(),
+          ),
+          expiry: Date.now() + 5 * 60 * 1000,
+        };
+        if (conversionRates.value.solana) { localStorage.setItem('conversionRates', JSON.stringify(conversionRates)); }
+      }
+      else break;
+    } catch (e) {
     console.log('--> Try again...');
     function delay(ms) {
         return new Promise( resolve => setTimeout(resolve, ms) );
